@@ -13,12 +13,6 @@ class ScoreManager:
         self.scores = pd.read_sql('select * from Scores', connection)
         self.multipliers = pd.read_sql('select * from Stage_Multipliers', connection)
 
-        for user in self.get_users_from_picks():
-            if user not in self.get_scores().keys():  # if user does not exist in the table
-                cur.execute("INSERT INTO Scores VALUES(?, ?)", [user, 0])
-            else:
-                cur.execute("UPDATE Scores set Score=0 WHERE NameID=?", [user])
-
         connection.commit()
 
         connection.close()
@@ -105,7 +99,7 @@ class ScoreManager:
         print("User {} picked {} for match {}".format(user, userpick, match_number))
         connection.commit()
 
-        self.matches = pd.read_sql('select * from Matches', connection)  # refreshes the contents of self.matches
+        self.picks = pd.read_sql('select * from Picks', connection)  # refreshes the contents of the picks data frame
         connection.close()
         return True
 
@@ -127,7 +121,12 @@ class ScoreManager:
                         score += self.get_multipliers()[stage]
 
             print('User {} has a score of {}'.format(user, score))
-            cur.execute("UPDATE Scores set Score=? WHERE NameID=?", [score, user])
+
+            if user not in self.get_scores().keys():  # if user does not have an entry in the scores table
+                cur.execute("INSERT INTO Scores VALUES(?, ?)", [user, score])
+            else:
+                cur.execute("UPDATE Scores set Score=? WHERE NameID=?", [score, user])
+
         connection.commit()
 
         self.scores = pd.read_sql('select * from Scores', connection)  # updates the data frame (df) from the db
