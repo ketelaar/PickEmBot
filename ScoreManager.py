@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+import time
 
 
 class ScoreManager:
@@ -112,7 +113,7 @@ class ScoreManager:
                 current_match = m
                 break
 
-        if current_match.done or current_match.started:  # user cannot change if match is done or has started
+        if time.time() > current_match.time:  # user cannot change if match has started
             return False
 
         for pick in self.get_picks():  # checking to see if the picks has already been made
@@ -201,19 +202,19 @@ class ScoreManager:
         self.matches = pd.read_sql('select * from Matches', connection)
         connection.close()
 
-    def add_match(self, team1, team2, stage, time):
+    def add_match(self, team1, team2, stage, timestamp):
         """
         Adds a match to the Matches table
         :param team1: 1st team
         :param team2: 2nd team
         :param stage: stage in which the 2 teams are playing
-        :param time: the starting time of the match
+        :param timestamp: the starting time of the match
         :return: void
         """
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
 
-        values = [len(self.get_matches()) + 1, team1, team2, stage, '0-0', time, 0, 0, None]
+        values = [len(self.get_matches()) + 1, team1, team2, stage, '0-0', timestamp, 0, 0, None]
         cur.execute("INSERT INTO Matches VALUES(?,?,?,?,?,?,?,?,?)", values)
 
         connection.commit()

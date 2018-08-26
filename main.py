@@ -1,10 +1,13 @@
 import discord
 from discord.ext import commands
 from ScoreManager import ScoreManager
+from pytz import timezone
+from datetime import datetime
 
 Client = discord.Client()
 client = commands.Bot(command_prefix='&')
 manager = ScoreManager('template.db')
+time_zone = timezone('Europe/Amsterdam')
 
 with open('token') as file:
     token = file.read()
@@ -31,7 +34,6 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.content.startswith("&pick"):
-        # TODO: Incorporate timestamps in order to stop users from picking after the match has started
         pick_message = message.content[6:].split(' ')
         match = pick_message[0]
         pick = pick_message[1]
@@ -41,12 +43,13 @@ async def on_message(message):
             await client.send_message(message.channel, "You picked {} for match {}".format(pick, match))
 
     if message.content.startswith("&matches"):
-        matches = "```Current Matches:"
+        matches = "```Current Matches (timezone: {}):".format(time_zone)
         done_matches = 'Done Matches:'
         for match in manager.get_matches():
+            time_string = datetime.fromtimestamp(match.time, tz=time_zone)
             if not match.done:
-                matches += "\n {}: {} vs {} starting at {} in {}".format(match.number, match.team1, match.team2,
-                                                                         match.time, match.stage)
+                matches += "\n {}: {} vs {} starting on {} in {}".format(match.number, match.team1, match.team2,
+                                                                         time_string, match.stage)
             else:
                 done_matches += "\n {}: {} vs {} in {} ({})".format(match.number, match.team1, match.team2,
                                                                     match.stage, match.result)
@@ -85,7 +88,7 @@ async def on_message(message):
                            '&multipliers : displays the points gained per stage of the tournament']
 
         admin_commands = ['&set x y z           : sets the value z for the variable y for match x',
-                          '&addmatch x, y, z, a : adds x vs y in stage z for time a']
+                          '&addmatch x, y, z, a : adds x vs y in stage z for time a (a is a Unix timestamp)']
 
         string = "```Commands:"
         for c in prefix_commands:
@@ -132,14 +135,14 @@ async def on_message(message):
         team1 = match_string[0]
         team2 = match_string[1]
         stage = match_string[2]
-        time = match_string[3]
+        timestamp = match_string[3]
         user = str(message.author)
 
         if user_is_admin(user):
-            manager.add_match(team1, team2, stage, time)
-            print("User {} has added {} vs {} in {} on {}".format(message.author, team1, team2, stage, time))
+            manager.add_match(team1, team2, stage, timestamp)
+            print("User {} has added {} vs {} in {} on {}".format(message.author, team1, team2, stage, timestamp))
             await client.send_message(message.channel, "You have added {} vs {} in {} on {}".format(team1, team2, stage,
-                                                                                                    time))
+                                                                                                    timestamp))
         else:
             await client.send_message(message.channel, "You do not have permission to use this command")
 
