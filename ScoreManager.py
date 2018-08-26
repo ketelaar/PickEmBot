@@ -5,7 +5,6 @@ import sqlite3
 class ScoreManager:
     def __init__(self, db_location):
         connection = sqlite3.connect(db_location)
-        cur = connection.cursor()
 
         self.db = db_location
         self.matches = pd.read_sql('select * from Matches', connection)
@@ -13,26 +12,39 @@ class ScoreManager:
         self.scores = pd.read_sql('select * from Scores', connection)
         self.multipliers = pd.read_sql('select * from Stage_Multipliers', connection)
 
-        connection.commit()
-
         connection.close()
 
     def get_multipliers(self):
+        """
+        Gets multipliers from the multipliers data frame and stores the values in a dictionary
+        :return: dictionary with the name of the stage being the key and the multiplier being the value
+        """
         multipliers = {}
         for i, j in zip(self.multipliers['Stage'], self.multipliers['Multiplier']):
             multipliers[i] = j
         return multipliers
 
     def get_scores(self):
+        """
+        Gets scores from the scores data frame and stores the values in a dictionary
+        :return: dictionary with the Discord ID being the key and the score being the value
+        """
         scores = {}
         for i, j in zip(self.scores['NameID'], self.scores['Score']):
             scores[i] = j
         return scores
 
     def get_matches(self):
+        """
+        Gets a lists of Match objects from the matches data frame
+        :return: A list of Match objects
+        """
         matches = []
 
         class Match:
+            """
+            Object containing all the database variables from the Matches table
+            """
             def __init__(self, series):
                 self.number = series[0]
                 self.team1 = series[1]
@@ -54,9 +66,17 @@ class ScoreManager:
         return matches
 
     def get_picks(self):
+        """
+        Gets a lists of Pick objects from the picks data frame
+        :return: A list of Pick objects
+        """
         picks = []
 
         class Pick:
+            """
+            Objects containing all the database variables from the pick table
+            Pick.match should always correspond to a match number in the Matches table
+            """
             def __init__(self, series):
                 self.match = int(series[0])
                 self.user = series[1]
@@ -70,9 +90,20 @@ class ScoreManager:
         return picks
 
     def get_users_from_picks(self):
+        """
+        List of unique users from the picks data frame
+        :return: Set of strings
+        """
         return set([pick.user for pick in self.get_picks()])
 
     def register_pick(self, match_number, user, userpick):
+        """
+        Registers the pick in the database
+        :param match_number: index of the match in the Match table
+        :param user: Discord ID to who the pick belongs
+        :param userpick: The team that the user picked
+        :return: False if the match is done or has started, True if the operation succeeds
+        """
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
         current_match = 0
@@ -104,6 +135,10 @@ class ScoreManager:
         return True
 
     def _calculate_scores(self):
+        """
+        Calculates the scores for every user in the picks data frame
+        :return: void
+        """
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
 
@@ -133,6 +168,10 @@ class ScoreManager:
         connection.close()
 
     def display_scores(self):
+        """
+        Makes a string that displays the score of every user in the picks data frame
+        :return: string
+        """
         self._calculate_scores()  # update the scores before display
         # score string that will be returned, ``` so that it will display in a discord code block
         score_string = '```Scores in descending order:'
@@ -146,6 +185,13 @@ class ScoreManager:
         return score_string
 
     def change_match_variable(self, variable, value, match):
+        """
+        Changes a certain match variable in the Matches table
+        :param variable: The variable of which the value should be changed
+        :param value: The value to which the variable should be changed
+        :param match: The match for which the value of the variable should be changed
+        :return: void
+        """
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
 
@@ -156,6 +202,14 @@ class ScoreManager:
         connection.close()
 
     def add_match(self, team1, team2, stage, time):
+        """
+        Adds a match to the Matches table
+        :param team1: 1st team
+        :param team2: 2nd team
+        :param stage: stage in which the 2 teams are playing
+        :param time: the starting time of the match
+        :return: void
+        """
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
 

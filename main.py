@@ -15,6 +15,11 @@ with open('admin') as file:
 
 
 def user_is_admin(user):
+    """
+    Checks if user is in the admin list
+    :param user: string which is the Discord ID of the user
+    :return: True if user is in the admin list, else False
+    """
     return user in admins
 
 
@@ -26,6 +31,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.content.startswith("&pick"):
+        # TODO: Incorporate timestamps in order to stop users from picking after the match has started
         pick_message = message.content[6:].split(' ')
         match = pick_message[0]
         pick = pick_message[1]
