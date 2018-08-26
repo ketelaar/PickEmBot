@@ -14,8 +14,8 @@ with open('admin') as file:
     admins = [line.rstrip('\n') for line in file]
 
 
-def user_is_admin(user, admin_list):
-    return user in admin_list
+def user_is_admin(user):
+    return user in admins
 
 
 @client.event
@@ -61,7 +61,7 @@ async def on_message(message):
         value = set_message[2]
         user = str(message.author)
 
-        if user_is_admin(user, admins):
+        if user_is_admin(user):
             manager.change_match_variable(variable, value, match)
             print("User {} changed {} to {} for Match {}".format(user, variable, value, match))
         else:
@@ -78,7 +78,8 @@ async def on_message(message):
                            '&scores      : displays the scores in descending order for all participants',
                            '&multipliers : displays the points gained per stage of the tournament']
 
-        admin_commands = ['&set x y z   : sets the value z for the variable y for match x']
+        admin_commands = ['&set x y z           : sets the value z for the variable y for match x',
+                          '&addmatch x, y, z, a : adds x vs y in stage z for time a']
 
         string = "```Commands:"
         for c in prefix_commands:
@@ -119,6 +120,22 @@ async def on_message(message):
         picks_string += "```"
 
         await client.send_message(message.channel, picks_string)
+
+    if message.content.startswith("&addmatch"):
+        match_string = message.content[10:].split(" ")
+        team1 = match_string[0]
+        team2 = match_string[1]
+        stage = match_string[2]
+        time = match_string[3]
+        user = str(message.author)
+
+        if user_is_admin(user):
+            manager.add_match(team1, team2, stage, time)
+            print("User {} has added {} vs {} in {} on {}".format(message.author, team1, team2, stage, time))
+            await client.send_message(message.channel, "You have added {} vs {} in {} on {}".format(team1, team2, stage,
+                                                                                                    time))
+        else:
+            await client.send_message(message.channel, "You do not have permission to use this command")
 
 
 client.run(token)

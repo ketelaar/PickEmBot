@@ -156,6 +156,17 @@ class ScoreManager:
         self.matches = pd.read_sql('select * from Matches', connection)
         connection.close()
 
+    def add_match(self, team1, team2, stage, time):
+        connection = sqlite3.connect(self.db)
+        cur = connection.cursor()
+
+        values = [len(self.get_matches()) + 1, team1, team2, stage, '0-0', time, 0, 0, None]
+        cur.execute("INSERT INTO Matches VALUES(?,?,?,?,?,?,?,?,?)", values)
+
+        connection.commit()
+        self.matches = pd.read_sql('select * from Matches', connection)
+        connection.close()
+
 
 if __name__ == '__main__':
     manager = ScoreManager('template_db')
