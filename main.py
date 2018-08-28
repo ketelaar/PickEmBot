@@ -54,7 +54,7 @@ async def on_message(message):
                 done_matches += "\n {}: {} vs {} in {} ({})".format(match.number, match.team1, match.team2,
                                                                     match.stage, match.result)
 
-        if matches == "```Current Matches:":
+        if matches == "```Current Matches (timezone: {}):".format(time_zone):
             matches = "```No current matches in the database"
 
         matches += '\n' + done_matches
@@ -88,7 +88,8 @@ async def on_message(message):
                            '&multipliers : displays the points gained per stage of the tournament']
 
         admin_commands = ['&set x y z           : sets the value z for the variable y for match x',
-                          '&addmatch x, y, z, a : adds x vs y in stage z for time a (a is a Unix timestamp)']
+                          '&addmatch x, y, z, a : adds x vs y in stage z for time a (a is a Unix timestamp)',
+                          '&newpicks x          : sends a message that new picks can be made to all members of role x']
 
         string = "```Commands:"
         for c in prefix_commands:
@@ -145,6 +146,34 @@ async def on_message(message):
                                                                                                     timestamp))
         else:
             await client.send_message(message.channel, "You do not have permission to use this command")
+
+    if message.content.startswith("&newpicks"):
+        user = str(message.author)
+        if user_is_admin(user):
+            string = message.content[10:].split(" ")
+            string_role = string[0]
+
+            server = message.server
+            message_role = ""
+            for role in server.roles:
+                if role.name == string_role:
+                    message_role = role
+
+            matches = "```"
+
+            message_string = message_role.mention + " You can now pick for the following matches:\n"
+
+            for match in manager.get_matches():
+                time_string = datetime.fromtimestamp(match.time, tz=time_zone)
+                if not match.done:
+                    matches += "\n {}: {} vs {} starting on {} in {}".format(match.number, match.team1, match.team2,
+                                                                             time_string, match.stage)
+
+            message_string += matches + "```"
+
+            await client.send_message(message.channel, message_string)
+        else:
+            await client.send_message("You do not have permission to use this command")
 
 
 client.run(token)
