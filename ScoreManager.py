@@ -214,7 +214,7 @@ class ScoreManager:
         connection = sqlite3.connect(self.db)
         cur = connection.cursor()
 
-        values = [len(self.get_matches()) + 1, team1, team2, stage, '0-0', timestamp, 0, 0, None]
+        values = [len(self.get_matches()) + 1, team1, team2, '0-0', stage, timestamp, 0, 0, None]
         cur.execute("INSERT INTO Matches VALUES(?,?,?,?,?,?,?,?,?)", values)
 
         connection.commit()
