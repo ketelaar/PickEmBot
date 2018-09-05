@@ -178,6 +178,7 @@ class ScoreManager:
         score_string = '```Scores in descending order:'
 
         scores = [(k, v) for k, v in self.get_scores().items()]  # retrieves scores from the df and sorts on value
+        scores = sorted(scores, key=lambda t: t[0])
 
         for n, i in enumerate(scores):
             score_string += "\n{}: {} has a score of {}".format(n + 1, i[0], i[1])
