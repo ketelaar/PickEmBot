@@ -18,6 +18,7 @@ class ScoreManager:
     def get_multipliers(self):
         """
         Gets multipliers from the multipliers data frame and stores the values in a dictionary
+        
         :return: dictionary with the name of the stage being the key and the multiplier being the value
         """
         multipliers = {}
@@ -28,6 +29,7 @@ class ScoreManager:
     def get_scores(self):
         """
         Gets scores from the scores data frame and stores the values in a dictionary
+
         :return: dictionary with the Discord ID being the key and the score being the value
         """
         scores = {}
@@ -38,6 +40,7 @@ class ScoreManager:
     def get_matches(self):
         """
         Gets a lists of Match objects from the matches data frame
+
         :return: A list of Match objects
         """
         matches = []
@@ -69,6 +72,7 @@ class ScoreManager:
     def get_picks(self):
         """
         Gets a lists of Pick objects from the picks data frame
+
         :return: A list of Pick objects
         """
         picks = []
@@ -100,6 +104,7 @@ class ScoreManager:
     def register_pick(self, match_number, user, userpick):
         """
         Registers the pick in the database
+
         :param match_number: index of the match in the Match table
         :param user: Discord ID to who the pick belongs
         :param userpick: The team that the user picked
@@ -138,6 +143,7 @@ class ScoreManager:
     def _calculate_scores(self):
         """
         Calculates the scores for every user in the picks data frame
+
         :return: void
         """
         connection = sqlite3.connect(self.db)
@@ -171,6 +177,7 @@ class ScoreManager:
     def display_scores(self):
         """
         Makes a string that displays the score of every user in the picks data frame
+
         :return: string
         """
         self._calculate_scores()  # update the scores before display
@@ -189,6 +196,7 @@ class ScoreManager:
     def change_match_variable(self, variable, value, match):
         """
         Changes a certain match variable in the Matches table
+
         :param variable: The variable of which the value should be changed
         :param value: The value to which the variable should be changed
         :param match: The match for which the value of the variable should be changed
@@ -206,6 +214,7 @@ class ScoreManager:
     def add_match(self, team1, team2, stage, timestamp):
         """
         Adds a match to the Matches table
+
         :param team1: 1st team
         :param team2: 2nd team
         :param stage: stage in which the 2 teams are playing
@@ -225,6 +234,7 @@ class ScoreManager:
     def find_match(self, match_number):
         """
         Finds Match object by the match number
+
         :param match_number: index number of the match
         :return: Match object
         """
@@ -236,6 +246,7 @@ class ScoreManager:
     def end_match(self, match_number, result):
         """
         Ends the match by writing the results and setting the winning team
+
         :param match_number: number of the match in question
         :param result: the result between the two teams
         :return: True if succeeded, else False
