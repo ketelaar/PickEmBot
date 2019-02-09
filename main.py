@@ -25,10 +25,14 @@ def user_is_admin(user):
     """
     return user in admins
 
+def access_denied():
+    return "You do not have access to this command"
+
 
 @client.event
 async def on_ready():
     print("Bot operational")
+    await client.change_presence(game=discord.Game(name='FACEIT Major: London 2018 (&help for commands)'))
 
 
 @client.event
@@ -50,9 +54,6 @@ async def on_message(message):
             if not match.done:
                 matches += "\n {}: {} vs {} starting on {} in {}".format(match.number, match.team1, match.team2,
                                                                          time_string, match.stage)
-            else:
-                done_matches += "\n {}: {} vs {} in {} ({})".format(match.number, match.team1, match.team2,
-                                                                    match.stage, match.result)
 
         if matches == "```Current Matches (timezone: {}):".format(time_zone):
             matches = "```No current matches in the database"
@@ -89,7 +90,8 @@ async def on_message(message):
 
         admin_commands = ['&set x y z           : sets the value z for the variable y for match x',
                           '&addmatch x, y, z, a : adds x vs y in stage z for time a (a is a Unix timestamp)',
-                          '&newpicks x          : sends a message that new picks can be made to all members of role x']
+                          '&newpicks x          : sends a message that new picks can be made to all members of role x',
+                          '&endmatch x, y       : ends match x with result y']
 
         string = "```Commands:"
         for c in prefix_commands:
@@ -145,7 +147,7 @@ async def on_message(message):
             await client.send_message(message.channel, "You have added {} vs {} in {} on {}".format(team1, team2, stage,
                                                                                                     timestamp))
         else:
-            await client.send_message(message.channel, "You do not have permission to use this command")
+            await client.send_message(message.channel, access_denied())
 
     if message.content.startswith("&newpicks"):
         user = str(message.author)
@@ -173,7 +175,21 @@ async def on_message(message):
 
             await client.send_message(message.channel, message_string)
         else:
-            await client.send_message("You do not have permission to use this command")
+            await client.send_message(message.channel, access_denied())
+
+    if message.content.startswith("&endmatch"):
+        user = str(message.author)
+        print("User {} used endmatch command".format(user))
+        if user_is_admin(user):
+            string = message.content[10:].split(" ")
+            match_number, result = string
+            if manager.end_match(match_number, result):
+                await client.send_message(message.channel, "Match {} ended {}".format(match_number, result))
+                print("User {} successfully ended match {}".format(user, match_number))
+            else:
+                await client.send_message(message.channel, "Incorrect match number")
+        else:
+            await client.send_message(message.channel, access_denied())
 
 
 client.run(token)

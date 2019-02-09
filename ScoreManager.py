@@ -222,6 +222,48 @@ class ScoreManager:
         self.matches = pd.read_sql('select * from Matches', connection)
         connection.close()
 
+    def find_match(self, match_number):
+        """
+        Finds Match object by the match number
+        :param match_number: index number of the match
+        :return: Match object
+        """
+        for match in self.get_matches():
+            if int(match_number) == int(match.number):
+                return match
+        return False
+
+    def end_match(self, match_number, result):
+        """
+        Ends the match by writing the results and setting the winning team
+        :param match_number: number of the match in question
+        :param result: the result between the two teams
+        :return: True if succeeded, else False
+        """
+        connection = sqlite3.connect(self.db)
+        cur = connection.cursor()
+
+        match = self.find_match(match_number)
+
+        if not match:
+            connection.close()
+            return False
+
+        result_1, result_2 = result.split("-")
+        if int(result_1) > int(result_2):
+            winner = match.team1
+        else:
+            winner = match.team2
+
+        values = [result, winner, match_number]
+        cur.execute("UPDATE Matches set Result=?, Winner=?, Done=1 WHERE Match=?", values)
+        connection.commit()
+
+        self.matches = pd.read_sql('select * from Matches', connection)
+        connection.close()
+
+        return True
+
 
 if __name__ == '__main__':
     manager = ScoreManager('template_db')
