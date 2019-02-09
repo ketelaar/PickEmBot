@@ -18,7 +18,7 @@ class ScoreManager:
     def get_multipliers(self):
         """
         Gets multipliers from the multipliers data frame and stores the values in a dictionary
-        
+
         :return: dictionary with the name of the stage being the key and the multiplier being the value
         """
         multipliers = {}

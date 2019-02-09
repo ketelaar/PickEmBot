@@ -25,6 +25,7 @@ def user_is_admin(user):
     """
     return user in admins
 
+
 def access_denied():
     return "You do not have access to this command"
 
@@ -90,7 +91,8 @@ async def on_message(message):
 
         admin_commands = ['&set x y z           : sets the value z for the variable y for match x',
                           '&addmatch x, y, z, a : adds x vs y in stage z for time a (a is a Unix timestamp)',
-                          '&newpicks x          : sends a message that new picks can be made to all members of role x',
+                          '&newpicks            : sends a message that new picks can be made to ' +
+                          'all members in the database',
                           '&endmatch x, y       : ends match x with result y']
 
         string = "```Commands:"
@@ -152,19 +154,20 @@ async def on_message(message):
     if message.content.startswith("&newpicks"):
         user = str(message.author)
         if user_is_admin(user):
-            string = message.content[10:].split(" ")
-            string_role = string[0]
-
             server = message.server
-            message_role = ""
-            for role in server.roles:
-                if role.name == string_role:
-                    message_role = role
+
+            user_names = manager.get_users_from_picks()
+            user_mentions = []
+            for member in server.members:
+                if member.name in user_names:
+                    user_mentions.append(member)
+
+            message_string = ""
+            for user in user_mentions:
+                message_string += user.mention + " "
+            message_string += " You can now pick for the following matches:\n"
 
             matches = "```"
-
-            message_string = message_role.mention + " You can now pick for the following matches:\n"
-
             for match in manager.get_matches():
                 time_string = datetime.fromtimestamp(match.time, tz=time_zone)
                 if not match.done:
