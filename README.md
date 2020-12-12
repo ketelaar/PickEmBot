@@ -1,2 +1,2 @@
 # PickEmBot
-Discord bot that can process PickEm picks and calculate scores
+Discord bot that simulates a Pick 'Em competition with user-defined matches and multipliers
